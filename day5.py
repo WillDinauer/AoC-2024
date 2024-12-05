@@ -42,7 +42,13 @@ def part1():
     return result
 
 def fix_update(rules, update):
-    return 0
+    fixed = []
+    for x in update:
+        i = 0
+        while i <= len(fixed) - 1 and x in rules[fixed[i]]:
+            i += 1
+        fixed.insert(i, x)
+    return fixed[len(fixed)//2]
 
 def part2():
     rules, updates = construct_map_and_list()
@@ -55,3 +61,4 @@ def part2():
 
 if __name__ == "__main__":
     print(part1())
+    print(part2())
