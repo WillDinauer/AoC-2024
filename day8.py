@@ -41,10 +41,41 @@ def part1():
             for j in range(i+1, len(positions)):
                 result += fill_grid(positions[i], positions[j], grid)
     return result
+
+def fill_p2(p1, p2, grid):
+    dr = p2[0]-p1[0]
+    dc = p2[1]-p1[1]
+
+    res = 0
+    r = p1[0]
+    c = p1[1]
+    while r >= 0 and c >= 0 and r < len(grid) and c < len(grid[0]):
+        if grid[r][c] == 0:
+            res += 1
+            grid[r][c] = 1
+        r -= dr
+        c -= dc
     
+    r = p1[0]
+    c = p1[1]
+    while r >= 0 and c >= 0 and r < len(grid) and c < len(grid[0]):
+        if grid[r][c] == 0:
+            res += 1
+            grid[r][c] = 1
+        r += dr
+        c += dc
+    return res
+
 
 def part2():
     nodes, grid = read_input()
+    result = 0
+    for freq in nodes:
+        positions = nodes[freq]
+        for i in range(len(positions)):
+            for j in range(i+1, len(positions)):
+                result += fill_p2(positions[i], positions[j], grid)
+    return result
 
 if __name__ == "__main__":
     print(part1())
