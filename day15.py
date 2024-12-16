@@ -69,10 +69,6 @@ def read_input(scale=False):
     
     return grid, directions, start
 
-
-
-
-
 dr = [-1, 1, 0, 0]
 dc = [0, 0, 1, -1]
     
