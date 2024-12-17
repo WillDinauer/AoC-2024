@@ -10,7 +10,6 @@ def read_input():
         return a, b, c, ins
 
 def perform_op(a, b, c, ins, i):
-    # print(f"performing op with a: {a} b: {b} c: {c} i: {i} [{ins[i]},{ins[i+1]}]")
     match ins[i+1]:
         case 0 | 1 | 2 | 3:
             combo = ins[i+1]
@@ -58,37 +57,32 @@ def part1():
             result += ","+str(res)
     return result[1:]
 
-def part2():
-    init_a, init_b, init_c, ins = read_input()
-    init_a = 0
-    off = [1]
-    oi = 0
-    ans = part1().split(",")
-    while(True):
-        if init_a % 1000000 == 0:
-            print(f"a: {init_a}")
-        ri = 0
+def backtrack(a, b, c, ins, ri):
+    if ri < 0:
+        return a
+    a = a << 3
+    for x in range(8):
+        ta = a + x
+        tb = b
+        tc = c
         i = 0
-        a = init_a
-        b = init_b
-        c = init_c
-        cache = set()
         while i < len(ins)-1:
-            if (a, b, c, i) in cache:
-                ri = 0
-                break
-            cache.add((a, b, c, i))
-            a, b, c, i, res = perform_op(a, b, c, ins, i)
+            ta, tb, tc, i, res = perform_op(ta, tb, tc, ins, i)
             if res != -1:
-                if ri > len(ins) or ins[ri] != res:
+                if res == ins[ri]:
+                    cont = backtrack(a + x, tb, tc, ins, ri-1)
+                    if cont > 0:
+                        return cont
+                else:
                     break
-                ri += 1
-        if ri == len(ins):
-            return init_a
-        elif ri == 4:
-            print(f"closer...{ri} {init_a}")
-        init_a += off[oi]
-        oi = (oi+1)%len(off)
+    return -1
+
+
+def part2():
+    a, b, c, ins = read_input()
+    ri = len(ins)-1
+    a = backtrack(0, b, c, ins, ri)
+    return a
     
 print(part1())
 print(part2())
