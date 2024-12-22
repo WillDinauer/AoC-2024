@@ -2,11 +2,6 @@ def read_input():
     with open("inputs/day21.txt", "r") as f:
         codes = [line.strip() for line in f.readlines()]
         return codes
-    
-def print_code(cur):
-    for i in range(len(cur[0])):
-        print(cur[0][i]*cur[1][i], end="")
-    print()
 
 keypad = {
     "7": [0, 0],
@@ -32,53 +27,77 @@ remote = {
     ">": [1, 2]
 }
 
-def handle(result, pos, cur, num, m):
-    r = cur[0] - pos[0]
-    c = cur[1] - pos[1]
-
-    # Prioritize "<" and "v" if possible
-    if c < 0 and [pos[0], pos[1]+c] != m["x"]:
-        result[0] += "<"
-        result[1].append(-c)
-        c = 0
-    if r > 0 and [pos[0]+r, pos[1]] != m["x"]:
-        result[0] += "v"
-        result[1].append(r)
-        r = 0
-
-    # General directions
+def get_sequences(a, b, r, c, m):
+    # Horizontal 
+    h = ""
     if c > 0:
-        result[0] += ">"
-        result[1].append(c)
+        h = ">" * c
+    elif c < 0:
+        h = "<" * -c
+    
+    # Vertical
+    v = ""
     if r > 0:
-        result[0] += "v"
-        result[1].append(r)
+        v = "v" * r
     elif r < 0:
-        result[0] += "^"
-        result[1].append(-r)
-    if c < 0:
-        result[0] += "<"
-        result[1].append(-c)
+        v = "^" * -r
 
-    # Press it as many times as necessary
-    result[0] += "A"
-    result[1].append(num)
+    # Potential sequences
+    htov = h + v + "A"
+    vtoh = v + h + "A"
 
+    # Validate sequences
+    sequences = []
+    if [a+r, b] != m["x"]:
+        sequences.append(vtoh)
+    if [a, b+c] != m["x"]:
+        sequences.append(htov)
+    return sequences
+    
 
-def process(cur, m):
-    pos = m["A"]
-    result = ["", []]
-    for i in range(len(cur[0])):
-        handle(result, pos, m[cur[0][i]], cur[1][i], m)
-        pos = m[cur[0][i]]
+def handle(a, b, r, c, d, cache, limit=2):
+    if r == 0 and c == 0:
+        return 1
+    if (a, b, r, c, d) in cache:
+        return cache[(a, b, r, c, d)]
+    if d == limit:
+        return abs(r) + abs(c) + 1
+    m = keypad if d == 0 else remote
+    sequences = get_sequences(a, b, r, c, m)
+    result = float('inf')
+    for seq in sequences:
+        prev = "A"
+        length = 0
+        for i in range(len(seq)):
+            na, nb = remote[prev]
+            ny, nz = remote[seq[i]]
+            nr = ny-na
+            nc = nz-nb
+            length += handle(na, nb, nr, nc, d+1, cache, limit)
+            prev = seq[i]
+        result = min(result, length)
+    cache[(a, b, r, c, d)] = result
     return result
 
+def process(code, cache, limit=2):
+    prev = "A"
+    length = 0
+    for i in range(len(code)):
+        a, b = keypad[prev]
+        y, z = keypad[code[i]]
+        r = y-a
+        c = z-b
+        length += handle(a, b, r, c, 0, cache, limit)
+        prev = code[i]
+    return length
+
 codes = read_input()
-result = 0
+p1, p2 = 0, 0
+c1, c2 = {}, {}
 for code in codes:
-    cur = [code, [1 for _ in range(len(code))]]
-    cur = process(cur, keypad)
-    for _ in range(2):
-        cur = process(cur, remote)
-    result += sum(cur[1]) * int(code[:3])
-print(f"p1: {result}")
+    l1 = process(code, c1, 2)
+    l2 = process(code, c2, 25)
+    p1 += l1 * int(code[:3])
+    p2 += l2 * int(code[:3])
+print(f"p1: {p1}")
+print(f"p2: {p2}")
